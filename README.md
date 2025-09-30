@@ -1,48 +1,205 @@
-![Banner image](https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png)
+# n8n-nodes-recrutei
 
-# n8n-nodes-starter
+![Recrutei Logo](./credentials/recrutei-bgblue-logo.svg)
 
-This repo contains example nodes to help you get started building your own custom integrations for [n8n](https://n8n.io). It includes the node linter and other dependencies.
+Um nó personalizado para n8n que permite integração completa com a API do Recrutei, plataforma de recrutamento e seleção de talentos.
 
-To make your custom node available to the community, you must create it as an npm package, and [submit it to the npm registry](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry).
+## 📋 Sobre
 
-If you would like your node to be available on n8n cloud you can also [submit your node for verification](https://docs.n8n.io/integrations/creating-nodes/deploy/submit-community-nodes/).
+Este nó oferece uma integração completa com a API do Recrutei, permitindo automatizar processos de recrutamento e gestão de vagas diretamente no n8n. Com ele, você pode criar, gerenciar e monitorar vagas, candidatos e processos seletivos de forma automatizada.
 
-## Prerequisites
+## 🚀 Funcionalidades
 
-You need the following installed on your development machine:
+### Gestão de Vagas
+- **Criar Vaga**: Criação completa de vagas com todos os detalhes (título, descrição, remuneração, localização, etc.)
+- **Buscar Vagas**: Consulta de vagas específicas por ID ou listagem geral
+- **Atualizar Status**: Alteração do status das vagas (Publicada, Rascunho, Finalizada, Congelada)
 
-* [git](https://git-scm.com/downloads)
-* Node.js and npm. Minimum version Node 20. You can find instructions on how to install both using nvm (Node Version Manager) for Linux, Mac, and WSL [here](https://github.com/nvm-sh/nvm). For Windows users, refer to Microsoft's guide to [Install NodeJS on Windows](https://docs.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-windows).
-* Install n8n with:
-  ```
-  npm install n8n -g
-  ```
-* Recommended: follow n8n's guide to [set up your development environment](https://docs.n8n.io/integrations/creating-nodes/build/node-development-environment/).
+### Gestão de Candidatos
+- **Listar Candidatos**: Busca de candidatos por vagas e etapas do processo
+- **Visualizar Candidatos**: Visualização detalhada de candidatos e suas aplicações
 
-## Using this starter
+### Dados de Referência
+- **Departamentos**: Lista de departamentos da empresa
+- **Regimes de Trabalho**: Lista de regimes disponíveis (CLT, PJ, etc.)
+- **Jobboards**: Lista de portais de vagas integrados
+- **Clientes**: Lista de clientes da empresa
+- **Fluxos (Pipes)**: Lista de fluxos de processo seletivo
+- **Motivos de Requisição**: Lista de motivos para abertura de vagas
+- **Managers**: Lista de recrutadores da empresa
 
-These are the basic steps for working with the starter. For detailed guidance on creating and publishing nodes, refer to the [documentation](https://docs.n8n.io/integrations/creating-nodes/).
+### Autenticação
+- **Login**: Obtenção de token de autenticação via API
 
-1. [Generate a new repository](https://github.com/n8n-io/n8n-nodes-starter/generate) from this template repository.
-2. Clone your new repo:
-   ```
-   git clone https://github.com/<your organization>/<your-repo-name>.git
-   ```
-3. Run `npm i` to install dependencies.
-4. Open the project in your editor.
-5. Browse the examples in `/nodes` and `/credentials`. Modify the examples, or replace them with your own nodes.
-6. Update the `package.json` to match your details.
-7. Run `npm run lint` to check for errors or `npm run lintfix` to automatically fix errors when possible.
-8. Test your node locally. Refer to [Run your node locally](https://docs.n8n.io/integrations/creating-nodes/test/run-node-locally/) for guidance.
-9. Replace this README with documentation for your node. Use the [README_TEMPLATE](README_TEMPLATE.md) to get started.
-10. Update the LICENSE file to use your details.
-11. [Publish](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry) your package to npm.
+## 📦 Instalação
 
-## More information
+### Via npm (Recomendado)
+```bash
+npm install n8n-nodes-recrutei
+```
 
-Refer to our [documentation on creating nodes](https://docs.n8n.io/integrations/creating-nodes/) for detailed information on building your own nodes.
+### Via n8n Community Nodes
+1. Acesse as configurações do n8n
+2. Vá em "Community Nodes"
+3. Adicione o pacote: `n8n-nodes-recrutei`
 
-## License
+## ⚙️ Configuração
 
-[MIT](https://github.com/n8n-io/n8n-nodes-starter/blob/master/LICENSE.md)
+### 1. Credenciais da API
+
+Para usar este nó, você precisa configurar as credenciais da API do Recrutei:
+
+1. **Acesse sua conta Recrutei** com um usuário que tenha permissão de acesso à API
+2. **Navegue até "Configurações" > "API"**
+3. **Copie as chaves**:
+   - `X-API-Key`: Token de identificação da empresa
+   - `X-API-Secret`: Token secreto da empresa
+
+### 2. Configuração no n8n
+
+1. **Adicione o nó Recrutei** ao seu workflow
+2. **Configure as credenciais**:
+   - Selecione "Recrutei Credencials API"
+   - Insira o token de autorização (obtido via operação "Obter Token")
+
+### 3. Obtenção do Token de Autorização
+
+1. **Use a operação "Obter Token"** primeiro
+2. **Configure os parâmetros**:
+   - Chave da API (X-API-Key)
+   - Segredo da API (X-API-Secret)
+   - E-mail do usuário
+   - Senha do usuário
+3. **Execute o nó** para obter o token
+4. **Use o token retornado** nas credenciais para outras operações
+
+## 🔧 Operações Disponíveis
+
+### Autenticação
+- **Obter Token**: Realiza login na API e retorna token de autenticação
+
+### Gestão de Vagas
+- **Criar Uma Vaga**: Cria nova vaga com configurações completas
+- **Buscar Por Vagas**: Consulta vagas por ID ou lista todas
+- **Atualizar Status Da Vaga**: Altera status da vaga (Publicada, Rascunho, Finalizada, Congelada)
+
+### Gestão de Candidatos
+- **Listando Candidatos**: Lista candidatos por vagas e etapas
+- **Visualizando Candidatos**: Visualiza dados detalhados de candidatos
+
+### Dados de Referência
+- **Listando Departamentos**: Lista departamentos da empresa
+- **Listando Regimes**: Lista regimes de trabalho disponíveis
+- **Listando Jobboards**: Lista portais de vagas integrados
+- **Listando Clientes**: Lista clientes da empresa
+- **Listando Fluxos (Pipes)**: Lista fluxos de processo seletivo
+- **Listando Motivos De Requisição**: Lista motivos para abertura de vagas
+- **Listando Managers**: Lista recrutadores da empresa
+
+## 📝 Exemplos de Uso
+
+### Exemplo 1: Criar uma Vaga Completa
+
+```json
+{
+  "operation": "createVacancy",
+  "title": "Desenvolvedor Front-end",
+  "description": "<p><h4>Responsabilidades:</h4><ul><li>Desenvolver aplicações React</li><li>Manter código limpo e documentado</li></ul></p>",
+  "company_department_id": 1,
+  "regime_id": 1,
+  "quantity": 2,
+  "workload": "40 horas",
+  "pipe_id": 1,
+  "remote": 1,
+  "type": "Pública",
+  "fixed_remuneration": 0,
+  "remuneration_from": 5000,
+  "remuneration_to": 7000,
+  "remuneration_type": "Mês",
+  "city": "São Paulo",
+  "state": "SP",
+  "country": "Brasil",
+  "skills": "React, JavaScript, HTML, CSS",
+  "benefits": "Plano de Saúde, Vale Alimentação"
+}
+```
+
+### Exemplo 2: Listar Candidatos de uma Vaga
+
+```json
+{
+  "operation": "listCandidates",
+  "vacancyIds": "123, 456",
+  "pipeIds": "1, 2, 3",
+  "page": 1,
+  "perPage": 20
+}
+```
+
+### Exemplo 3: Atualizar Status de Vaga
+
+```json
+{
+  "operation": "updateVacancyStatus",
+  "vacancyIdForStatus": "123",
+  "status": 3
+}
+```
+
+## 🔗 Recursos Úteis
+
+- **Documentação da API Recrutei**: [https://developers.recrutei.com.br/docs/getting-started](https://developers.recrutei.com.br/docs/getting-started)
+- **Documentação do n8n**: [https://docs.n8n.io](https://docs.n8n.io)
+- **Repositório do Projeto**: [https://github.com/gustavoogarrido/Recrutei-node](https://github.com/gustavoogarrido/Recrutei-node)
+
+## 🛠️ Desenvolvimento
+
+### Pré-requisitos
+- Node.js >= 20.15
+- npm
+- n8n
+
+### Instalação para Desenvolvimento
+```bash
+git clone https://github.com/gustavoogarrido/Recrutei-node.git
+cd Recrutei-node
+npm install
+```
+
+### Scripts Disponíveis
+```bash
+npm run build    # Compila o projeto
+npm run dev      # Modo desenvolvimento com watch
+npm run lint     # Verifica erros de linting
+npm run lintfix  # Corrige erros de linting automaticamente
+```
+
+## 📄 Licença
+
+MIT License - veja o arquivo [LICENSE](LICENSE.md) para detalhes.
+
+## 👨‍💻 Autor
+
+**Gustavo Garrido**
+- Email: gustavo.garrido@recrutei.com.br
+- GitHub: [@gustavoogarrido](https://github.com/gustavoogarrido)
+
+## 🤝 Contribuições
+
+Contribuições são bem-vindas! Sinta-se à vontade para:
+
+1. Fazer fork do projeto
+2. Criar uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abrir um Pull Request
+
+## 📞 Suporte
+
+Para suporte e dúvidas:
+- Abra uma [issue](https://github.com/gustavoogarrido/Recrutei-node/issues) no GitHub
+- Entre em contato via email: gustavo.garrido@recrutei.com.br
+
+---
+
+**Nota**: Este é um nó da comunidade para n8n. Para suporte oficial do Recrutei, consulte a [documentação oficial da API](https://developers.recrutei.com.br/docs/getting-started).
