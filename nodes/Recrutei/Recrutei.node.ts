@@ -4,6 +4,8 @@ import {
 	NodeConnectionType,
 	IExecuteFunctions,
 	INodeExecutionData,
+	NodeApiError,
+	NodeOperationError,
 } from 'n8n-workflow';
 
 export class Recrutei implements INodeType {
@@ -40,64 +42,52 @@ export class Recrutei implements INodeType {
 				noDataExpression: true,
 				options: [
 					{
-						name: 'Obter token',
-						value: 'login',
-						description: 'Login to Recrutei API',
-						action: 'Login',
-					},
-					{
-						name: 'Criar uma vaga',
-						value: 'createVacancy',
-						description: 'Create a new job vacancy',
-						action: 'Create a vacancy',
-					},
-					{
-						name: 'Buscar por vagas',
-						value: 'getVacancy',
-						description: 'Get a specific vacancy by ID',
-						action: 'Get a vacancy',
-					},
-					{
-						name: 'Atualizar status da vaga',
+						name: 'Atualizar Status Da Vaga',
 						value: 'updateVacancyStatus',
 						description: 'Update vacancy status',
 						action: 'Update vacancy status',
 					},
 					{
-						name: 'Listando departamentos',
-						value: 'listDepartments',
-						description: 'List all registered departments',
-						action: 'List departments',
+						name: 'Buscar Por Vagas',
+						value: 'getVacancy',
+						description: 'Get a specific vacancy by ID',
+						action: 'Get a vacancy',
 					},
 					{
-						name: 'Listando regimes',
-						value: 'listRegimes',
-						description: 'List all registered regimes',
-						action: 'List regimes',
+						name: 'Criar Uma Vaga',
+						value: 'createVacancy',
+						description: 'Create a new job vacancy',
+						action: 'Create a vacancy',
 					},
 					{
-						name: 'Listando jobboards',
-						value: 'listJobboards',
-						description: 'List all jobboards in the company account',
-						action: 'List jobboards',
+						name: 'Listando Candidatos',
+						value: 'listCandidates',
+						description: 'List candidates for a vacancy in the company account',
+						action: 'List candidates',
 					},
 					{
-						name: 'Listando clientes',
+						name: 'Listando Clientes',
 						value: 'listClients',
 						description: 'List all clients registered in the company account',
 						action: 'List clients',
 					},
 					{
-						name: 'Listando fluxos (pipes)',
+						name: 'Listando Departamentos',
+						value: 'listDepartments',
+						description: 'List all registered departments',
+						action: 'List departments',
+					},
+					{
+						name: 'Listando Fluxos (Pipes)',
 						value: 'listPipes',
 						description: 'List all pipes/flows registered in the company account',
 						action: 'List pipes',
 					},
 					{
-						name: 'Listando motivos de requisição',
-						value: 'listRequestReasons',
-						description: 'List all request reasons registered in the company account',
-						action: 'List request reasons',
+						name: 'Listando Jobboards',
+						value: 'listJobboards',
+						description: 'List all jobboards in the company account',
+						action: 'List jobboards',
 					},
 					{
 						name: 'Listando Managers',
@@ -106,13 +96,25 @@ export class Recrutei implements INodeType {
 						action: 'List managers',
 					},
 					{
-						name: 'Listando candidatos',
-						value: 'listCandidates',
-						description: 'List candidates for a vacancy in the company account',
-						action: 'List candidates',
+						name: 'Listando Motivos De Requisição',
+						value: 'listRequestReasons',
+						description: 'List all request reasons registered in the company account',
+						action: 'List request reasons',
 					},
 					{
-						name: 'Visualizando candidatos',
+						name: 'Listando Regimes',
+						value: 'listRegimes',
+						description: 'List all registered regimes',
+						action: 'List regimes',
+					},
+					{
+						name: 'Obter Token',
+						value: 'login',
+						description: 'Login to Recrutei API',
+						action: 'Login',
+					},
+					{
+						name: 'Visualizando Candidatos',
 						value: 'viewCandidates',
 						description: 'View candidate data for a vacancy in the company account',
 						action: 'View candidates',
@@ -132,12 +134,13 @@ export class Recrutei implements INodeType {
 					},
 				},
 				options: [],
-				description: 'Para obter as chaves X-API-Key e X-API-Secret: 1) Acesse a conta da empresa na Recrutei com um usuário com permissão de acesso, 2) Navegue até "Configurações" > "API", 3) Os tokens da empresa estarão visíveis e disponíveis para utilização.',
+				description: 'Para obter as chaves X-API-Key e X-API-Secret: 1) Acesse a conta da empresa na Recrutei com um usuário com permissão de acesso, 2) Navegue até "Configurações" > "API", 3) Os tokens da empresa estarão visíveis e disponíveis para utilização',
 			},
 			{
-				displayName: 'Chave da API (X-API-Key)',
+				displayName: 'Chave Da API (X-API-Key)',
 				name: 'xApiKey',
 				type: 'string',
+				typeOptions: { password: true },
 				required: true,
 				default: '',
 				description: 'Token de identificação da empresa. Para obter: acesse a conta da empresa na Recrutei com um usuário com permissão de acesso em "Configurações" > "API". O token da empresa estará visível e disponível para utilização.',
@@ -148,7 +151,7 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'Segredo da API (X-API-Secret)',
+				displayName: 'Segredo Da API (X-API-Secret)',
 				name: 'xApiSecret',
 				type: 'string',
 				typeOptions: {
@@ -164,9 +167,10 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'E-mail do Usuário',
+				displayName: 'E-Mail Do Usuário',
 				name: 'email',
 				type: 'string',
+				placeholder: 'name@email.com',
 				required: true,
 				default: '',
 				description: 'Seu endereço de e-mail ou endereço para o qual o token deve ser gerado. Deve ser um e-mail válido cadastrado na conta da empresa.',
@@ -177,7 +181,7 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'Senha do Usuário',
+				displayName: 'Senha Do Usuário',
 				name: 'password',
 				type: 'string',
 				typeOptions: {
@@ -197,9 +201,8 @@ export class Recrutei implements INodeType {
 				displayName: 'Vacancy ID',
 				name: 'vacancyId',
 				type: 'string',
-				required: false,
 				default: '',
-				description: 'ID of the vacancy to retrieve. If empty, will get all vacancies',
+				description: 'ID of the vacancy to retrieve. If empty, will get all vacancies.',
 				displayOptions: {
 					show: {
 						operation: ['getVacancy'],
@@ -208,7 +211,7 @@ export class Recrutei implements INodeType {
 			},
 			// Campos para Update Vacancy Status
 			{
-				displayName: 'ID da Vaga',
+				displayName: 'ID Da Vaga',
 				name: 'vacancyIdForStatus',
 				type: 'string',
 				required: true,
@@ -221,7 +224,7 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'Status da Vaga',
+				displayName: 'Status Da Vaga',
 				name: 'status',
 				type: 'options',
 				options: [
@@ -257,12 +260,12 @@ export class Recrutei implements INodeType {
 			},
 			// Campos para Create Vacancy
 			{
-				displayName: 'Título da Vaga',
+				displayName: 'Título Da Vaga',
 				name: 'title',
 				type: 'string',
 				required: true,
 				default: '',
-				description: 'Título da vaga. Exemplo: "Desenvolvedor Front-end"',
+				description: 'Título da vaga. Exemplo: "Desenvolvedor Front-end".',
 				displayOptions: {
 					show: {
 						operation: ['createVacancy'],
@@ -270,7 +273,7 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'Descrição da Vaga',
+				displayName: 'Descrição Da Vaga',
 				name: 'description',
 				type: 'string',
 				typeOptions: {
@@ -278,7 +281,7 @@ export class Recrutei implements INodeType {
 				},
 				required: true,
 				default: '',
-				description: 'Descrição da vaga em HTML/CSS simples. Exemplo: <p><h4>Responsabilidades:</h4><ul><li>Desenvolver aplicações...</li></ul></p>',
+				description: 'Descrição da vaga em HTML/CSS simples. Exemplo: <p><h4>Responsabilidades:</h4><ul><li>Desenvolver aplicações...</li></ul></p>.',
 				displayOptions: {
 					show: {
 						operation: ['createVacancy'],
@@ -286,7 +289,7 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'ID do Departamento',
+				displayName: 'ID Do Departamento',
 				name: 'company_department_id',
 				type: 'number',
 				required: true,
@@ -299,7 +302,7 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'ID do Regime de Trabalho',
+				displayName: 'ID Do Regime De Trabalho',
 				name: 'regime_id',
 				type: 'number',
 				required: true,
@@ -312,12 +315,12 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'Quantidade de Vagas',
+				displayName: 'Quantidade De Vagas',
 				name: 'quantity',
 				type: 'number',
 				required: true,
 				default: 1,
-				description: 'Define a quantidade de posições que a vaga terá. Exemplo: 5',
+				description: 'Define a quantidade de posições que a vaga terá. Exemplo: 5.',
 				displayOptions: {
 					show: {
 						operation: ['createVacancy'],
@@ -338,7 +341,7 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'ID do Fluxo (Pipe)',
+				displayName: 'ID Do Fluxo (Pipe)',
 				name: 'pipe_id',
 				type: 'number',
 				required: true,
@@ -351,14 +354,14 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'Modalidade de Trabalho',
+				displayName: 'Modalidade De Trabalho',
 				name: 'remote',
 				type: 'options',
 				options: [
 					{ name: '100% Presencial', value: 0 },
 					{ name: '100% Remoto', value: 1 },
-					{ name: 'Presencial ou Remoto', value: 2 },
-					{ name: 'Híbrido (Presencial e Remoto)', value: 3 },
+					{ name: 'Presencial Ou Remoto', value: 2 },
+					{ name: 'Híbrido (Presencial E Remoto)', value: 3 },
 				],
 				required: true,
 				default: 0,
@@ -370,7 +373,7 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'Tipo de Vaga',
+				displayName: 'Tipo De Vaga',
 				name: 'type',
 				type: 'options',
 				options: [
@@ -387,7 +390,7 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'Tipo de Remuneração',
+				displayName: 'Tipo De Remuneração',
 				name: 'fixed_remuneration',
 				type: 'options',
 				options: [
@@ -404,7 +407,7 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'Valor da Remuneração',
+				displayName: 'Valor Da Remuneração',
 				name: 'remuneration',
 				type: 'number',
 				default: 0,
@@ -440,7 +443,7 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'Período da Remuneração',
+				displayName: 'Período Da Remuneração',
 				name: 'remuneration_type',
 				type: 'options',
 				options: [
@@ -457,7 +460,7 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'Data de Expiração',
+				displayName: 'Data De Expiração',
 				name: 'expired_at',
 				type: 'dateTime',
 				default: '',
@@ -469,10 +472,9 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'ID do Cliente',
+				displayName: 'ID Do Cliente',
 				name: 'client_id',
 				type: 'number',
-				required: false,
 				default: null,
 				description: 'Define qual será o cliente que deverá ser associado à vaga, caso exista. A lista de clientes pode ser obtida através do endpoint "Listando clientes".',
 				displayOptions: {
@@ -482,10 +484,9 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'ID do Motivo da Requisição',
+				displayName: 'ID Do Motivo Da Requisição',
 				name: 'request_reason_id',
 				type: 'number',
-				required: false,
 				default: 0,
 				description: 'Define qual será o motivo de requisição associado à vaga. A lista de motivos possíveis pode ser obtida através do endpoint "Listando motivos de requisição".',
 				displayOptions: {
@@ -498,7 +499,6 @@ export class Recrutei implements INodeType {
 				displayName: 'Cidade',
 				name: 'city',
 				type: 'string',
-				required: false,
 				default: '',
 				description: 'Define a cidade da vaga. Poderá ser NULL caso não tenha cidade definida, numa vaga remota, por exemplo. Exemplo: "Uberlândia"',
 				displayOptions: {
@@ -511,7 +511,6 @@ export class Recrutei implements INodeType {
 				displayName: 'Estado (UF)',
 				name: 'state',
 				type: 'string',
-				required: false,
 				default: '',
 				description: 'Define o estado da vaga, em UF. Poderá ser NULL caso não tenha estado definido, numa vaga remota, por exemplo. Exemplo: "MG"',
 				displayOptions: {
@@ -524,7 +523,6 @@ export class Recrutei implements INodeType {
 				displayName: 'País',
 				name: 'country',
 				type: 'string',
-				required: false,
 				default: '',
 				description: 'Define o país da vaga. Poderá ser NULL caso não tenha país definido, numa vaga remota, por exemplo. Exemplo: "Brasil"',
 				displayOptions: {
@@ -537,9 +535,8 @@ export class Recrutei implements INodeType {
 				displayName: 'Habilidades Necessárias',
 				name: 'skills',
 				type: 'string',
-				required: false,
 				default: '',
-				description: 'Define a lista de habilidades necessárias para a vaga, separadas por vírgula. Exemplo: "Javascript, NodeJS, ReactJS, HTML, CSS"',
+				description: 'Define a lista de habilidades necessárias para a vaga, separadas por vírgula. Exemplo: "Javascript, NodeJS, ReactJS, HTML, CSS".',
 				displayOptions: {
 					show: {
 						operation: ['createVacancy'],
@@ -550,9 +547,8 @@ export class Recrutei implements INodeType {
 				displayName: 'Benefícios Oferecidos',
 				name: 'benefits',
 				type: 'string',
-				required: false,
 				default: '',
-				description: 'Define a lista de benefícios associados na vaga, separados por vírgula. Exemplo: "Plano de Saúde, Vale Alimentação"',
+				description: 'Define a lista de benefícios associados na vaga, separados por vírgula. Exemplo: "Plano de Saúde, Vale Alimentação".',
 				displayOptions: {
 					show: {
 						operation: ['createVacancy'],
@@ -563,7 +559,6 @@ export class Recrutei implements INodeType {
 				displayName: 'Código Interno',
 				name: 'internal_code',
 				type: 'string',
-				required: false,
 				default: '',
 				description: 'Código interno da vaga para controle da empresa (opcional)',
 				displayOptions: {
@@ -573,10 +568,9 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'Data Prevista para Contratação',
+				displayName: 'Data Prevista Para Contratação',
 				name: 'time_to_hire',
 				type: 'dateTime',
-				required: false,
 				default: '',
 				description: 'Data prevista para preenchimento da vaga (SLA interno). Esta data não é compartilhada com os candidatos.',
 				displayOptions: {
@@ -586,10 +580,9 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'IDs dos Recrutadores',
+				displayName: 'IDs Dos Recrutadores',
 				name: 'managers',
 				type: 'string',
-				required: false,
 				default: '',
 				description: 'Define qual será a equipe que será responsável pela vaga. Devem ser enviados os IDs dos managers (recrutadores) separados por vírgulas. A lista de managers pode ser obtida através do endpoint "Listando Managers". Exemplo: 1994, 2174, 2155',
 				displayOptions: {
@@ -605,9 +598,8 @@ export class Recrutei implements INodeType {
 				typeOptions: {
 					alwaysOpenEditWindow: true,
 				},
-				required: false,
 				default: '',
-				description: 'Permite incluir uma observação interna qualquer que ficará associada à vaga. Exemplo: "Esta vaga deverá ser trabalhada em..."',
+				description: 'Permite incluir uma observação interna qualquer que ficará associada à vaga. Exemplo: "Esta vaga deverá ser trabalhada em...".',
 				displayOptions: {
 					show: {
 						operation: ['createVacancy'],
@@ -632,14 +624,13 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'Vaga para PCD',
+				displayName: 'Vaga Para PCD',
 				name: 'pcd',
 				type: 'options',
 				options: [
 					{ name: 'Não', value: 0 },
 					{ name: 'Sim', value: 1 },
 				],
-				required: false,
 				default: 0,
 				description: 'Define se a oportunidade será inclusiva para pessoas com deficiência (PCD)',
 				displayOptions: {
@@ -656,7 +647,6 @@ export class Recrutei implements INodeType {
 					{ name: 'Não', value: 0 },
 					{ name: 'Sim', value: 1 },
 				],
-				required: false,
 				default: 0,
 				description: 'Define se a vaga é inclusiva/afirmativa para diversidade',
 				displayOptions: {
@@ -717,7 +707,7 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'Exibir Regime de Trabalho',
+				displayName: 'Exibir Regime De Trabalho',
 				name: 'show_regime',
 				type: 'options',
 				options: [
@@ -735,7 +725,7 @@ export class Recrutei implements INodeType {
 			},
 			// Campos para List Candidates
 			{
-				displayName: 'IDs das Vagas',
+				displayName: 'IDs Das Vagas',
 				name: 'vacancyIds',
 				type: 'string',
 				required: true,
@@ -748,10 +738,9 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'IDs das Etapas (Pipes)',
+				displayName: 'IDs Das Etapas (Pipes)',
 				name: 'pipeIds',
 				type: 'string',
-				required: false,
 				default: '',
 				description: 'Lista de números inteiros para identificação de Etapas do processo seletivo. Separe os IDs por vírgula. Exemplo: "1, 2, 3"',
 				displayOptions: {
@@ -764,7 +753,6 @@ export class Recrutei implements INodeType {
 				displayName: 'Página Atual',
 				name: 'page',
 				type: 'number',
-				required: false,
 				default: 1,
 				description: 'Número da página atual para paginação',
 				displayOptions: {
@@ -774,10 +762,9 @@ export class Recrutei implements INodeType {
 				},
 			},
 			{
-				displayName: 'Candidatos por Página',
+				displayName: 'Candidatos Por Página',
 				name: 'perPage',
 				type: 'number',
-				required: false,
 				default: 20,
 				description: 'Número máximo de candidatos por página',
 				displayOptions: {
@@ -791,9 +778,8 @@ export class Recrutei implements INodeType {
 				displayName: 'Application ID',
 				name: 'applicationId',
 				type: 'string',
-				required: false,
 				default: '',
-				description: 'ID of the specific application to view. If empty, will list all applications',
+				description: 'ID of the specific application to view. If empty, will list all applications.',
 				displayOptions: {
 					show: {
 						operation: ['viewCandidates'],
@@ -854,7 +840,7 @@ export class Recrutei implements INodeType {
 						responseData = await viewCandidates.call(this, i);
 						break;
 					default:
-						throw new Error(`Unknown operation: ${operation}`);
+						throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
 				}
 
 				returnData.push({
@@ -891,19 +877,19 @@ async function createVacancy(this: IExecuteFunctions, itemIndex: number): Promis
 
 	// Validar campos obrigatórios
 	if (!title || !description) {
-		throw new Error('Title and description are required for creating a vacancy.');
+		throw new NodeOperationError(this.getNode(), 'Title and description are required for creating a vacancy.');
 	}
 	if (!companyDepartmentId) {
-		throw new Error('Company Department ID is required for creating a vacancy.');
+		throw new NodeOperationError(this.getNode(), 'Company Department ID is required for creating a vacancy.');
 	}
 	if (!regimeId) {
-		throw new Error('Regime ID is required for creating a vacancy.');
+		throw new NodeOperationError(this.getNode(), 'Regime ID is required for creating a vacancy.');
 	}
 	if (!quantity || quantity <= 0) {
-		throw new Error('Quantity must be greater than 0 for creating a vacancy.');
+		throw new NodeOperationError(this.getNode(), 'Quantity must be greater than 0 for creating a vacancy.');
 	}
 	if (!workload) {
-		throw new Error('Workload is required for creating a vacancy.');
+		throw new NodeOperationError(this.getNode(), 'Workload is required for creating a vacancy.');
 	}
 
 	// Obter parâmetros opcionais
@@ -980,10 +966,10 @@ async function login(this: IExecuteFunctions, itemIndex: number): Promise<any> {
 
 	// Validar parâmetros obrigatórios
 	if (!email || !password) {
-		throw new Error('Email and password are required for login.');
+		throw new NodeOperationError(this.getNode(), 'Email and password are required for login.');
 	}
 	if (!xApiKey || !xApiSecret) {
-		throw new Error('X-API-Key and X-API-Secret are required for login.');
+		throw new NodeOperationError(this.getNode(), 'X-API-Key and X-API-Secret are required for login.');
 	}
 
 	const body = {
@@ -1011,7 +997,7 @@ async function getVacancy(this: IExecuteFunctions, itemIndex: number): Promise<a
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new Error('Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
 	}
 	
 	// Construir URL baseada no ID fornecido
@@ -1038,10 +1024,10 @@ async function updateVacancyStatus(this: IExecuteFunctions, itemIndex: number): 
 
 	// Validar parâmetros obrigatórios
 	if (!vacancyId || vacancyId.trim() === '') {
-		throw new Error('Vacancy ID is required for updating status.');
+		throw new NodeOperationError(this.getNode(), 'Vacancy ID is required for updating status.');
 	}
 	if (status === undefined || status === null) {
-		throw new Error('Status is required for updating vacancy status.');
+		throw new NodeOperationError(this.getNode(), 'Status is required for updating vacancy status.');
 	}
 
 	const body = {
@@ -1065,7 +1051,7 @@ async function listDepartments(this: IExecuteFunctions, itemIndex: number): Prom
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new Error('Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
 	}
 
 	const response = await this.helpers.httpRequest({
@@ -1085,7 +1071,7 @@ async function listRegimes(this: IExecuteFunctions, itemIndex: number): Promise<
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new Error('Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
 	}
 
 	const response = await this.helpers.httpRequest({
@@ -1105,7 +1091,7 @@ async function listJobboards(this: IExecuteFunctions, itemIndex: number): Promis
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new Error('Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
 	}
 
 	const response = await this.helpers.httpRequest({
@@ -1125,7 +1111,7 @@ async function listClients(this: IExecuteFunctions, itemIndex: number): Promise<
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new Error('Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
 	}
 
 	const response = await this.helpers.httpRequest({
@@ -1145,7 +1131,7 @@ async function listPipes(this: IExecuteFunctions, itemIndex: number): Promise<an
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new Error('Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
 	}
 
 	const response = await this.helpers.httpRequest({
@@ -1165,7 +1151,7 @@ async function listRequestReasons(this: IExecuteFunctions, itemIndex: number): P
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new Error('Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
 	}
 
 	const response = await this.helpers.httpRequest({
@@ -1185,7 +1171,7 @@ async function listManagers(this: IExecuteFunctions, itemIndex: number): Promise
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new Error('Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
 	}
 
 	const response = await this.helpers.httpRequest({
@@ -1205,7 +1191,7 @@ async function listCandidates(this: IExecuteFunctions, itemIndex: number): Promi
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new Error('Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
 	}
 
 	const vacancyIds = this.getNodeParameter('vacancyIds', itemIndex) as string;
@@ -1215,7 +1201,7 @@ async function listCandidates(this: IExecuteFunctions, itemIndex: number): Promi
 
 	// Validar parâmetros obrigatórios
 	if (!vacancyIds || vacancyIds.trim() === '') {
-		throw new Error('Vacancy IDs are required for listing candidates.');
+		throw new NodeOperationError(this.getNode(), 'Vacancy IDs are required for listing candidates.');
 	}
 
 	// Converter string de IDs para array de números
@@ -1249,7 +1235,7 @@ async function viewCandidates(this: IExecuteFunctions, itemIndex: number): Promi
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new Error('Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
 	}
 
 	const applicationId = this.getNodeParameter('applicationId', itemIndex) as string;
