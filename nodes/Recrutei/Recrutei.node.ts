@@ -997,7 +997,7 @@ async function getVacancy(this: IExecuteFunctions, itemIndex: number): Promise<a
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
 	}
 	
 	// Construir URL baseada no ID fornecido
@@ -1051,7 +1051,7 @@ async function listDepartments(this: IExecuteFunctions, itemIndex: number): Prom
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
 	}
 
 	const response = await this.helpers.httpRequest({
@@ -1071,7 +1071,7 @@ async function listRegimes(this: IExecuteFunctions, itemIndex: number): Promise<
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
 	}
 
 	const response = await this.helpers.httpRequest({
@@ -1091,7 +1091,7 @@ async function listJobboards(this: IExecuteFunctions, itemIndex: number): Promis
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
 	}
 
 	const response = await this.helpers.httpRequest({
@@ -1111,7 +1111,7 @@ async function listClients(this: IExecuteFunctions, itemIndex: number): Promise<
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
 	}
 
 	const response = await this.helpers.httpRequest({
@@ -1131,7 +1131,7 @@ async function listPipes(this: IExecuteFunctions, itemIndex: number): Promise<an
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
 	}
 
 	const response = await this.helpers.httpRequest({
@@ -1151,7 +1151,7 @@ async function listRequestReasons(this: IExecuteFunctions, itemIndex: number): P
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
 	}
 
 	const response = await this.helpers.httpRequest({
@@ -1171,7 +1171,7 @@ async function listManagers(this: IExecuteFunctions, itemIndex: number): Promise
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
 	}
 
 	const response = await this.helpers.httpRequest({
@@ -1191,7 +1191,7 @@ async function listCandidates(this: IExecuteFunctions, itemIndex: number): Promi
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
 	}
 
 	const vacancyIds = this.getNodeParameter('vacancyIds', itemIndex) as string;
@@ -1235,7 +1235,7 @@ async function viewCandidates(this: IExecuteFunctions, itemIndex: number): Promi
 	
 	// Validar se as credenciais existem
 	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), 'Authorization token is required. Please configure the Recrutei API credentials.');
+		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
 	}
 
 	const applicationId = this.getNodeParameter('applicationId', itemIndex) as string;
