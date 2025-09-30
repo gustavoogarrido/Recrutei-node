@@ -813,34 +813,48 @@ export class Recrutei implements INodeType {
 			try {
 				let responseData: any;
 
-				if (operation === 'createVacancy') {
-					responseData = await createVacancy.call(this, i);
-				} else if (operation === 'getVacancy') {
-					responseData = await getVacancy.call(this, i);
-				} else if (operation === 'updateVacancyStatus') {
-					responseData = await updateVacancyStatus.call(this, i);
-				} else if (operation === 'login') {
-					responseData = await login.call(this, i);
-				} else if (operation === 'listDepartments') {
-					responseData = await listDepartments.call(this, i);
-				} else if (operation === 'listRegimes') {
-					responseData = await listRegimes.call(this, i);
-				} else if (operation === 'listJobboards') {
-					responseData = await listJobboards.call(this, i);
-				} else if (operation === 'listClients') {
-					responseData = await listClients.call(this, i);
-				} else if (operation === 'listPipes') {
-					responseData = await listPipes.call(this, i);
-				} else if (operation === 'listRequestReasons') {
-					responseData = await listRequestReasons.call(this, i);
-				} else if (operation === 'listManagers') {
-					responseData = await listManagers.call(this, i);
-				} else if (operation === 'listCandidates') {
-					responseData = await listCandidates.call(this, i);
-				} else if (operation === 'viewCandidates') {
-					responseData = await viewCandidates.call(this, i);
-				} else {
-					throw new Error(`Unknown operation: ${operation}`);
+				switch (operation) {
+					case 'createVacancy':
+						responseData = await createVacancy.call(this, i);
+						break;
+					case 'getVacancy':
+						responseData = await getVacancy.call(this, i);
+						break;
+					case 'updateVacancyStatus':
+						responseData = await updateVacancyStatus.call(this, i);
+						break;
+					case 'login':
+						responseData = await login.call(this, i);
+						break;
+					case 'listDepartments':
+						responseData = await listDepartments.call(this, i);
+						break;
+					case 'listRegimes':
+						responseData = await listRegimes.call(this, i);
+						break;
+					case 'listJobboards':
+						responseData = await listJobboards.call(this, i);
+						break;
+					case 'listClients':
+						responseData = await listClients.call(this, i);
+						break;
+					case 'listPipes':
+						responseData = await listPipes.call(this, i);
+						break;
+					case 'listRequestReasons':
+						responseData = await listRequestReasons.call(this, i);
+						break;
+					case 'listManagers':
+						responseData = await listManagers.call(this, i);
+						break;
+					case 'listCandidates':
+						responseData = await listCandidates.call(this, i);
+						break;
+					case 'viewCandidates':
+						responseData = await viewCandidates.call(this, i);
+						break;
+					default:
+						throw new Error(`Unknown operation: ${operation}`);
 				}
 
 				returnData.push({
