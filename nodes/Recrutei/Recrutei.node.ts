@@ -4,12 +4,43 @@ import {
 	NodeConnectionType,
 	IExecuteFunctions,
 	INodeExecutionData,
-	NodeApiError,
 	NodeOperationError,
 } from 'n8n-workflow';
 
+// Helper function to get authentication token
+async function getAuthToken(this: IExecuteFunctions): Promise<string> {
+	const credentials = await this.getCredentials('recruteiApi');
+	
+	if (!credentials?.xApiKey || !credentials?.xApiSecret || !credentials?.email || !credentials?.password) {
+		throw new NodeOperationError(this.getNode(), 'Missing required credentials. Please configure X-API-Key, X-API-Secret, Email, and Password.');
+	}
+
+	try {
+		const loginResponse = await this.helpers.httpRequest({
+			method: 'POST',
+			url: 'https://api.recrutei.com.br/api/v1/login-api',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-api-key': credentials.xApiKey as string,
+				'x-api-secret': credentials.xApiSecret as string,
+			},
+			body: JSON.stringify({
+				email: credentials.email as string,
+				password: credentials.password as string,
+			}),
+		});
+
+		if (!loginResponse || !loginResponse.token) {
+			throw new NodeOperationError(this.getNode(), 'Failed to obtain authentication token. Please check your credentials.');
+		}
+
+		return loginResponse.token;
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), `Authentication failed: ${error.message}`);
+	}
+}
+
 // Importação dos campos separados
-import { loginFields } from './fields/login.fields';
 import { getVacancyFields } from './fields/getVacancy.fields';
 import { updateVacancyStatusFields } from './fields/updateVacancyStatus.fields';
 import { createVacancyFields } from './fields/createVacancy.fields';
@@ -34,7 +65,7 @@ export class Recrutei implements INodeType {
 	       credentials: [
 		       {
 			       name: 'recruteiApi',
-			       required: false,
+			       required: true,
 			       displayOptions: {
 				       show: {
 					       operation: ['createVacancy', 'getVacancy', 'updateVacancyStatus', 'listDepartments', 'listRegimes', 'listJobboards', 'listClients', 'listPipes', 'listRequestReasons', 'listManagers', 'listCandidates', 'viewCandidates'],
@@ -116,21 +147,14 @@ export class Recrutei implements INodeType {
 					       action: 'List regimes',
 				       },
 				       {
-					       name: 'Obter Token',
-					       value: 'login',
-					       description: 'Login to Recrutei API',
-					       action: 'Login',
-				       },
-				       {
 					       name: 'Visualizando Candidatos',
 					       value: 'viewCandidates',
 					       description: 'View candidate data for a vacancy in the company account',
 					       action: 'View candidates',
 				       },
 			       ],
-			       default: 'login',
+			       default: 'createVacancy',
 		       },
-		       ...loginFields,
 		       ...getVacancyFields,
 		       ...updateVacancyStatusFields,
 		       ...createVacancyFields,
@@ -158,9 +182,6 @@ export class Recrutei implements INodeType {
 						break;
 					case 'updateVacancyStatus':
 						responseData = await updateVacancyStatus.call(this, i);
-						break;
-					case 'login':
-						responseData = await login.call(this, i);
 						break;
 					case 'listDepartments':
 						responseData = await listDepartments.call(this, i);
@@ -296,44 +317,14 @@ async function createVacancy(this: IExecuteFunctions, itemIndex: number): Promis
 		...(internalInformation && { internal_information: internalInformation }),
 	};
 
-	const response = await this.helpers.requestWithAuthentication.call(this, 'recruteiApi', {
+	const token = await getAuthToken.call(this);
+	
+	const response = await this.helpers.httpRequest({
 		method: 'POST',
 		url: 'https://api.recrutei.com.br/api/v1/vacancies',
 		headers: {
-			'Content-Type': 'multipart/form-data',
-		},
-		body: body,
-	});
-
-	return response;
-}
-
-async function login(this: IExecuteFunctions, itemIndex: number): Promise<any> {
-	const email = this.getNodeParameter('email', itemIndex) as string;
-	const password = this.getNodeParameter('password', itemIndex) as string;
-	const xApiKey = this.getNodeParameter('xApiKey', itemIndex) as string;
-	const xApiSecret = this.getNodeParameter('xApiSecret', itemIndex) as string;
-
-	// Validar parâmetros obrigatórios
-	if (!email || !password) {
-		throw new NodeOperationError(this.getNode(), 'Email and password are required for login.');
-	}
-	if (!xApiKey || !xApiSecret) {
-		throw new NodeOperationError(this.getNode(), 'X-API-Key and X-API-Secret are required for login.');
-	}
-
-	const body = {
-		email: email,
-		password: password,
-	};
-
-	const response = await this.helpers.httpRequest({
-		method: 'POST',
-		url: 'https://api.recrutei.com.br/api/v1/login-api',
-		headers: {
 			'Content-Type': 'application/json',
-			'x-api-key': xApiKey,
-			'x-api-secret': xApiSecret,
+			'Authorization': `Bearer ${token}`,
 		},
 		body: JSON.stringify(body),
 	});
@@ -341,14 +332,9 @@ async function login(this: IExecuteFunctions, itemIndex: number): Promise<any> {
 	return response;
 }
 
+
 async function getVacancy(this: IExecuteFunctions, itemIndex: number): Promise<any> {
 	const vacancyId = this.getNodeParameter('vacancyId', itemIndex) as string;
-	const credentials = await this.getCredentials('recruteiApi');
-
-	// Validar se as credenciais existem
-	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
-	}
 
 	// Construir URL baseada no ID fornecido
 	let url = 'https://api.recrutei.com.br/api/v1/vacancies';
@@ -356,12 +342,14 @@ async function getVacancy(this: IExecuteFunctions, itemIndex: number): Promise<a
 		url += `/${vacancyId}`;
 	}
 
+	const token = await getAuthToken.call(this);
+
 	const response = await this.helpers.httpRequest({
 		method: 'GET',
 		url: url,
 		headers: {
-			'Content-Type': 'multipart/form-data',
-			'Authorization': `Bearer ${credentials.Authorization}`,
+			'Content-Type': 'application/json',
+			'Authorization': `Bearer ${token}`,
 		},
 	});
 
@@ -371,12 +359,6 @@ async function getVacancy(this: IExecuteFunctions, itemIndex: number): Promise<a
 async function updateVacancyStatus(this: IExecuteFunctions, itemIndex: number): Promise<any> {
 	const vacancyId = this.getNodeParameter('vacancyIdForStatus', itemIndex) as string;
 	const status = this.getNodeParameter('status', itemIndex) as number;
-	const credentials = await this.getCredentials('recruteiApi');
-
-	// Validar se as credenciais existem
-	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
-	}
 
 	// Validar parâmetros obrigatórios
 	if (!vacancyId || vacancyId.trim() === '') {
@@ -390,12 +372,14 @@ async function updateVacancyStatus(this: IExecuteFunctions, itemIndex: number): 
 		status_id: status,
 	};
 
+	const token = await getAuthToken.call(this);
+
 	const response = await this.helpers.httpRequest({
 		method: 'PUT',
 		url: `https://api.recrutei.com.br/api/v1/vacancies/${vacancyId}/status`,
 		headers: {
 			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${credentials.Authorization}`,
+			'Authorization': `Bearer ${token}`,
 		},
 		body: JSON.stringify(body),
 	});
@@ -404,19 +388,14 @@ async function updateVacancyStatus(this: IExecuteFunctions, itemIndex: number): 
 }
 
 async function listDepartments(this: IExecuteFunctions, itemIndex: number): Promise<any> {
-	const credentials = await this.getCredentials('recruteiApi');
-
-	// Validar se as credenciais existem
-	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
-	}
+	const token = await getAuthToken.call(this);
 
 	const response = await this.helpers.httpRequest({
 		method: 'GET',
 		url: 'https://api.recrutei.com.br/api/v1/departments',
 		headers: {
 			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${credentials.Authorization}`,
+			'Authorization': `Bearer ${token}`,
 		},
 	});
 
@@ -424,19 +403,14 @@ async function listDepartments(this: IExecuteFunctions, itemIndex: number): Prom
 }
 
 async function listRegimes(this: IExecuteFunctions, itemIndex: number): Promise<any> {
-	const credentials = await this.getCredentials('recruteiApi');
-
-	// Validar se as credenciais existem
-	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
-	}
+	const token = await getAuthToken.call(this);
 
 	const response = await this.helpers.httpRequest({
 		method: 'GET',
 		url: 'https://api.recrutei.com.br/api/v1/regimes/list',
 		headers: {
 			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${credentials.Authorization}`,
+			'Authorization': `Bearer ${token}`,
 		},
 	});
 
@@ -444,19 +418,14 @@ async function listRegimes(this: IExecuteFunctions, itemIndex: number): Promise<
 }
 
 async function listJobboards(this: IExecuteFunctions, itemIndex: number): Promise<any> {
-	const credentials = await this.getCredentials('recruteiApi');
-
-	// Validar se as credenciais existem
-	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
-	}
+	const token = await getAuthToken.call(this);
 
 	const response = await this.helpers.httpRequest({
 		method: 'GET',
 		url: 'https://api.recrutei.com.br/api/v1/jobboards/list',
 		headers: {
 			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${credentials.Authorization}`,
+			'Authorization': `Bearer ${token}`,
 		},
 	});
 
@@ -464,19 +433,14 @@ async function listJobboards(this: IExecuteFunctions, itemIndex: number): Promis
 }
 
 async function listClients(this: IExecuteFunctions, itemIndex: number): Promise<any> {
-	const credentials = await this.getCredentials('recruteiApi');
-
-	// Validar se as credenciais existem
-	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
-	}
+	const token = await getAuthToken.call(this);
 
 	const response = await this.helpers.httpRequest({
 		method: 'GET',
 		url: 'https://api.recrutei.com.br/api/v1/clients/list',
 		headers: {
 			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${credentials.Authorization}`,
+			'Authorization': `Bearer ${token}`,
 		},
 	});
 
@@ -484,19 +448,14 @@ async function listClients(this: IExecuteFunctions, itemIndex: number): Promise<
 }
 
 async function listPipes(this: IExecuteFunctions, itemIndex: number): Promise<any> {
-	const credentials = await this.getCredentials('recruteiApi');
-
-	// Validar se as credenciais existem
-	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
-	}
+	const token = await getAuthToken.call(this);
 
 	const response = await this.helpers.httpRequest({
 		method: 'GET',
 		url: 'https://api.recrutei.com.br/api/v1/pipes',
 		headers: {
 			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${credentials.Authorization}`,
+			'Authorization': `Bearer ${token}`,
 		},
 	});
 
@@ -504,19 +463,14 @@ async function listPipes(this: IExecuteFunctions, itemIndex: number): Promise<an
 }
 
 async function listRequestReasons(this: IExecuteFunctions, itemIndex: number): Promise<any> {
-	const credentials = await this.getCredentials('recruteiApi');
-
-	// Validar se as credenciais existem
-	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
-	}
+	const token = await getAuthToken.call(this);
 
 	const response = await this.helpers.httpRequest({
 		method: 'GET',
 		url: 'https://api.recrutei.com.br/api/v2/vacancies/request-reasons',
 		headers: {
 			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${credentials.Authorization}`,
+			'Authorization': `Bearer ${token}`,
 		},
 	});
 
@@ -524,19 +478,14 @@ async function listRequestReasons(this: IExecuteFunctions, itemIndex: number): P
 }
 
 async function listManagers(this: IExecuteFunctions, itemIndex: number): Promise<any> {
-	const credentials = await this.getCredentials('recruteiApi');
-
-	// Validar se as credenciais existem
-	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
-	}
+	const token = await getAuthToken.call(this);
 
 	const response = await this.helpers.httpRequest({
 		method: 'GET',
 		url: 'https://api.recrutei.com.br/api/v1/managers/list',
 		headers: {
 			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${credentials.Authorization}`,
+			'Authorization': `Bearer ${token}`,
 		},
 	});
 
@@ -544,13 +493,6 @@ async function listManagers(this: IExecuteFunctions, itemIndex: number): Promise
 }
 
 async function listCandidates(this: IExecuteFunctions, itemIndex: number): Promise<any> {
-	const credentials = await this.getCredentials('recruteiApi');
-
-	// Validar se as credenciais existem
-	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
-	}
-
 	const vacancyIds = this.getNodeParameter('vacancyIds', itemIndex) as string;
 	const pipeIds = this.getNodeParameter('pipeIds', itemIndex) as string;
 	const page = this.getNodeParameter('page', itemIndex) as number;
@@ -574,12 +516,14 @@ async function listCandidates(this: IExecuteFunctions, itemIndex: number): Promi
 	// Construir query parameters
 	const queryParams = `page=${page}&perPage=${perPage}`;
 
+	const token = await getAuthToken.call(this);
+
 	const response = await this.helpers.httpRequest({
 		method: 'POST',
 		url: `https://api.recrutei.com.br/api/v1/search/talents?${queryParams}`,
 		headers: {
 			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${credentials.Authorization}`,
+			'Authorization': `Bearer ${token}`,
 		},
 		body: JSON.stringify(payload),
 	});
@@ -588,13 +532,6 @@ async function listCandidates(this: IExecuteFunctions, itemIndex: number): Promi
 }
 
 async function viewCandidates(this: IExecuteFunctions, itemIndex: number): Promise<any> {
-	const credentials = await this.getCredentials('recruteiApi');
-
-	// Validar se as credenciais existem
-	if (!credentials?.Authorization) {
-		throw new NodeApiError(this.getNode(), { message: 'Authorization token is required. Please configure the Recrutei API credentials.' });
-	}
-
 	const applicationId = this.getNodeParameter('applicationId', itemIndex) as string;
 
 	// Construir URL baseada no ID fornecido
@@ -603,12 +540,14 @@ async function viewCandidates(this: IExecuteFunctions, itemIndex: number): Promi
 		url += `/${applicationId}`;
 	}
 
+	const token = await getAuthToken.call(this);
+
 	const response = await this.helpers.httpRequest({
 		method: 'GET',
 		url: url,
 		headers: {
 			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${credentials.Authorization}`,
+			'Authorization': `Bearer ${token}`,
 		},
 	});
 

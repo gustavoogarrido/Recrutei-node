@@ -29,7 +29,7 @@ Este nó oferece uma integração completa com a API do Recrutei, permitindo aut
 - **Managers**: Lista de recrutadores da empresa
 
 ### Autenticação
-- **Login**: Obtenção de token de autenticação via API
+- **Autenticação Automática**: Login automático via credenciais configuradas
 
 ## 📦 Instalação
 
@@ -59,24 +59,16 @@ Para usar este nó, você precisa configurar as credenciais da API do Recrutei:
 
 1. **Adicione o nó Recrutei** ao seu workflow
 2. **Configure as credenciais**:
-   - Selecione "Recrutei Credencials API"
-   - Insira o token de autorização (obtido via operação "Obter Token")
-
-### 3. Obtenção do Token de Autorização
-
-1. **Use a operação "Obter Token"** primeiro
-2. **Configure os parâmetros**:
-   - Chave da API (X-API-Key)
-   - Segredo da API (X-API-Secret)
-   - E-mail do usuário
-   - Senha do usuário
-3. **Execute o nó** para obter o token
-4. **Use o token retornado** nas credenciais para outras operações
+   - Selecione "Recrutei API Credentials"
+   - Insira os dados de autenticação:
+     - **X-API-Key**: Token de identificação da empresa
+     - **X-API-Secret**: Token secreto da empresa
+     - **Email**: E-mail do usuário com permissão de API
+     - **Password**: Senha do usuário
+3. **Teste as credenciais** usando o botão "Test" - o nó fará login automaticamente
+4. **Use qualquer operação** - a autenticação é automática e transparente
 
 ## 🔧 Operações Disponíveis
-
-### Autenticação
-- **Obter Token**: Realiza login na API e retorna token de autenticação
 
 ### Gestão de Vagas
 - **Criar Uma Vaga**: Cria nova vaga com configurações completas
